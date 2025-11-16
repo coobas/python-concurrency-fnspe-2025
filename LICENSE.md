@@ -1,0 +1,1 @@
+["Python Concurrency and Distributed Computing in Practice"](https://github.com/coobas/python-concurrency-fnspe-2025) by [Jakub Urban](https://github.com/coobas/) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
