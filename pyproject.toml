@@ -9,6 +9,5 @@ dependencies = [
     "distributed>=2025.11.0",
     "jupyter>=1.1.1",
     "loky>=3.5.6",
-    "marimo>=0.18.1",
     "numpy>=2.3.4",
 ]
