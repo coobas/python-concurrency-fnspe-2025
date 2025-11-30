@@ -6,6 +6,10 @@ Presented on Dec 1, 2025.
 
 (c) Jakub Urban, 2025
 
+## Online slides
+
+[https://coobas.github.io/python-concurrency-fnspe-2025/](https://coobas.github.io/python-concurrency-fnspe-2025/)
+
 ## Running slides locally
 
 ```bash

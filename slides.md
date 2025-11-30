@@ -693,4 +693,5 @@ flowchart TD
   * Improve pickling, data communication, task dependencies, resilience, resource management, and more.
   * Scale from single machine to large clusters.
 
-* All materials available at [https://github.com/coobas/python-concurrency-fnspe-2025].
+* Slides available at [https://coobas.github.io/python-concurrency-fnspe-2025/].
+* Source available at [https://github.com/coobas/python-concurrency-fnspe-2025].
