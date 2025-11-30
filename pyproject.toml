@@ -1,0 +1,14 @@
+[project]
+name = "python-concurrency-fnspe-2025"
+version = "0.1.0"
+description = "Python Concurrency and Distributed Computing in Practice"
+requires-python = ">=3.13,<3.15"
+dependencies = [
+    "dask>=2025.11.0",
+    "dask-labextension>=7.0.0",
+    "distributed>=2025.11.0",
+    "jupyter>=1.1.1",
+    "loky>=3.5.6",
+    "marimo>=0.18.1",
+    "numpy>=2.3.4",
+]
