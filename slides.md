@@ -259,7 +259,7 @@ for future in concurrent.futures.as_completed(futures):
 
 ---
 
-# Collect multiple results: `wait`
+# More flexibility for multiple results: `wait`
 
 - `wait` gives us more flexibility and control over the futures while waiting.
   - We can use waiting timeout.
@@ -271,6 +271,15 @@ done, not_done = wait(futures, timeout=1, return_when=FIRST_COMPLETED)
 ```
 
 - `done` and `not_done` are sets of futures.
+- A common pattern is to keep calling `wait` until `not_done` becomes empty, processing completed futures as soon as they're ready:
+
+```python
+not_done = [executor.submit(do_some_math, x) for x in range(10)]
+while not_done:
+    done, not_done = wait(not_done, return_when=FIRST_COMPLETED)
+    for future in done:
+        handle_result(future.result())  # react immediately
+```
 
 ---
 
@@ -396,6 +405,49 @@ executor = loky.get_reusable_executor(max_workers=4, timeout=2)
 - tldr; `loky` is a straightforward replacement for `ProcessPoolExecutor`.
 
 ---
+layout: two-cols-header
+---
+
+# Asyncio: Cooperative multitasking
+
+::left::
+
+- Python `asyncio` is a single-threaded, single-process technique that uses *cooperative multitasking*.
+- Coroutines are a central feature of `asyncio`, which can be scheduled concurrently.
+- Coroutines can *pause their execution* while waiting for a result.
+  - In the meantime, the control is passed to an *event loop*, which can execute another coroutine.
+- Event loop is like an infinite loop that monitors coroutines and looks around for things that can be executed.
+
+::right::
+
+<div style="display: flex; justify-content: center;">
+  <img src="./asyncio-loop.png" alt="Asyncio event loop" style="width: 600px; max-width: 100%; max-height: 100%;" />
+</div>
+
+---
+
+# Asyncio `async`/`await` usage
+
+```python {3-8|10-14|16}
+import asyncio
+
+async def get_user_name() -> str:
+    await asyncio.sleep(2)  # hand over control to the event loop
+    return "Max Planck"
+
+async def get_user_title() -> str:
+    await asyncio.sleep(1)  # hand over control to the event loop
+    return "Prof."
+
+async def greet() -> None:
+    name = await get_user_name()
+    title = await get_user_title()
+    print(f"Hello, {title} {name}!")
+
+asyncio.run(greet())  # from sync realm to async world
+```
+
+---
 
 # `concurrent.futures` within `asyncio`
 
@@ -436,6 +488,7 @@ layout: section
 
 ---
 layout: two-cols-header
+layoutClass: grid-cols-[2fr_1fr]  # Tailwind CSS grid classes
 ---
 
 # Scaling out: Distributed computing
@@ -446,7 +499,7 @@ layout: two-cols-header
   - Need to process huge datasets.
   - The calculation is too heavy.
   - Too many repetitions (grid search).
-- Memory: "My data do not fit into my (computer's) memory."
+- Memory: "My data do not fit into memory 😱"
   - Symptoms: OOM (Out Of Memory) kills, swapping leading to system freeze.
 - Processing power: "My calculation takes too long."
   - Symptoms: CPU, GPU, other PU's at 100%, calculation time too long.
@@ -454,9 +507,12 @@ layout: two-cols-header
 
 ::right::
 
+<v-clicks>
 <div style="display: flex; justify-content: center;">
   <img src="./cluster.png" alt="Cluster diagram" style="width: 300px; max-width: 100%; max-height: 100%;" />
 </div>
+
+</v-clicks>
 
 ---
 
@@ -532,13 +588,14 @@ dask_future = dask_client.submit(do_some_math, 10)
 executor = dask_client.get_executor()
 ```
 
-<v-click>
+<v-clicks>
+
 - Need to decide whether to work with `Dask`,
   - and profit from its specific features,
 - or with `concurrent.futures` and `Dask` as a backend,
   - and profit from the `concurrent.futures` full compatibility, e.g. within `asyncio`.
 
-</v-click>
+</v-clicks>
 
 ---
 
@@ -575,7 +632,54 @@ result = await future
 
 # Dask Demo Time 🙀
 
-[snippets/dask_demo.py](./snippets/dask_demo.py)
+1. Start with a problem of a long-running calculation graph: [notebooks/dask_demo_problem.ipynb](./notebooks/dask_demo_problem.ipynb)
+2. Solve with Dask: [notebooks/dask_demo_solution.ipynb](./notebooks/dask_demo_solution.ipynb)
+
+Problem flowchart:
+
+```mermaid
+flowchart TD
+    data[load_data] --> split[split into chunks]
+
+    split --> chunk1[chunk 1]
+    split --> chunk2[chunk 2]
+    split --> chunkN[chunk N]
+
+    chunk1 --> cd1[check_divisibility]
+    chunk2 --> cd2[check_divisibility]
+    chunkN --> cdN[check_divisibility]
+
+    cd1 --> cds1a[check_divisibility_single by 3]
+    cd1 --> cds1b[check_divisibility_single by 5]
+    cd1 --> cds1c[check_divisibility_single by 7]
+
+    cd2 --> cds2a[check_divisibility_single by 3]
+    cd2 --> cds2b[check_divisibility_single by 5]
+    cd2 --> cds2c[check_divisibility_single by 7]
+
+    cdN --> cdsNa[check_divisibility_single by 3]
+    cdN --> cdsNb[check_divisibility_single by 5]
+    cdN --> cdsNc[check_divisibility_single by 7]
+
+    cds1a --> and1[logical_and]
+    cds1b --> and1
+    cds1c --> and1
+
+    cds2a --> and2[logical_and]
+    cds2b --> and2
+    cds2c --> and2
+
+    cdsNa --> andN[logical_and]
+    cdsNb --> andN
+    cdsNc --> andN
+
+    and1 --> concat[concatenate]
+    and2 --> concat
+    andN --> concat
+
+    concat --> result[result]
+```
+
 
 ---
 
@@ -589,4 +693,4 @@ result = await future
   * Improve pickling, data communication, task dependencies, resilience, resource management, and more.
   * Scale from single machine to large clusters.
 
-* Slides available at [https://github.com/coobas/pydata-prague-25].
+* All materials available at [https://github.com/coobas/python-concurrency-fnspe-2025].
